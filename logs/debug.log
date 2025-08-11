@@ -1,0 +1,8 @@
+
+
+2025-08-04 17:07:52,682 - __main__ - ERROR - ÅäÖÃ¼üÈ±Ê§: 'et_k_llm' - ÎÄ¼þ: setup.yaml
+Traceback (most recent call last):
+  File "c:\Users\gwf\Documents\doc_chunk\Utils\llm.py", line 15, in get_llm
+    type= data["graph_config"][type]
+          ~~~~~~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'et_k_llm'

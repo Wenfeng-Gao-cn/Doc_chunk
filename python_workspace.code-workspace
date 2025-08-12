@@ -10,6 +10,9 @@
         ],
         "python.autoComplete.extraPaths": [
             "${workspaceFolder}"
-        ]
+        ],
+        "terminal.integrated.env.linux": {
+            "PYTHONPATH": "${workspaceFolder}"
+        }
     }
 }

@@ -13,8 +13,6 @@ logger = setup_logger(__name__)
 async def init_get_k_chain(state: GraphState) -> KnowledgeTree:
     source_doc = state.source_doc
     setup_file = "setup.yaml"
-    # KnowledgeNode.model_rebuild()
-    # KnowledgeTree.model_rebuild()
     try:
         with open(setup_file, encoding='utf-8') as f:
             setup_data = yaml.safe_load(f)
@@ -37,12 +35,9 @@ async def init_get_k_chain(state: GraphState) -> KnowledgeTree:
         raise
     parser = JsonOutputParser(pydantic_object=KnowledgeTree)
     format_instructions = parser.get_format_instructions()
-    # get_k_prompt_template = gen_JsonOutputParser(get_k_prompt, KnowledgeTree)
     input_2_llm = PromptTemplate(
         input_variables=["source_doc"],
-        # template=get_k_prompt_template,
         template=get_k_prompt,
-        # partial_variables={"format_instructions": parser.get_format_instructions()}
         partial_variables={"format_instructions": format_instructions}
     )
     # print("输入模型的内容:")
@@ -50,57 +45,26 @@ async def init_get_k_chain(state: GraphState) -> KnowledgeTree:
     # input("请确认输入模型的内容是否正确，按Enter继续...")
 
     k_chain = input_2_llm | get_llm("get_k_llm") | parser
+    result = k_chain.invoke({"source_doc": source_doc})
+    final_result = KnowledgeTree(**result)
 
-    final_result = k_chain.invoke({"source_doc": source_doc})
+    print(f"生成知识树：\n{final_result}\n")
+
+    # return final_result
+    return final_result
 
     # 确保返回结果包含必需字段并转换为KnowledgeTree实例
-    if isinstance(final_result, dict):
-        if 'title' not in final_result:
-            final_result['title'] = "知识树"
-        if 'content' not in final_result:
-            final_result['content'] = "这是一个结构化的知识树，包含了相关主题的详细知识点。"
-        return KnowledgeTree(**final_result)
-    elif isinstance(final_result, KnowledgeTree):
-        return final_result
-    else:
-        raise ValueError(f"无法处理的结果类型: {type(final_result)}")
-    # 创建KnowledgeTree实例
-    # try:
-    #     if isinstance(final_result, dict):
-    #         # 检查并补充缺失的必需字段（简化版本）
-    #         if 'title' not in final_result:
-    #             print("警告: 结果中缺少title字段，正在自动生成...", flush=True)
-    #             final_result['title'] = "知识树"
-            
-    #         if 'content' not in final_result:
-    #             print("警告: 结果中缺少content字段，正在自动生成...", flush=True)
-    #             final_result['content'] = "这是一个结构化的知识树，包含了相关主题的详细知识点。"
-            
-    #         knowledge_tree = KnowledgeTree(**final_result)
-    #         print("成功创建KnowledgeTree实例", flush=True)
-    #         return knowledge_tree
-    #     elif isinstance(final_result, KnowledgeTree):
-    #         print("结果已经是KnowledgeTree实例", flush=True)
-    #         return final_result
-    #     else:
-    #         # 如果结果不是dict也不是KnowledgeTree，尝试解析
-    #         print(f"尝试解析非标准结果: {type(final_result)}", flush=True)
-    #         parsed_result = parser.parse(str(final_result))
-    #         if isinstance(parsed_result, dict):
-    #             # 对解析后的结果也进行字段检查
-    #             if 'title' not in parsed_result:
-    #                 parsed_result['title'] = "知识树"
-                
-    #             if 'content' not in parsed_result:
-    #                 parsed_result['content'] = "这是一个结构化的知识树，包含了相关主题的详细知识点。"
-                
-    #             return KnowledgeTree(**parsed_result)
-    #         return parsed_result
-    # except Exception as parse_error:
-    #     logger.error(f"解析结果时出错: {str(parse_error)}")
-    #     print(f"解析错误，原始结果: {final_result}")
-    #     raise
-
+    # if isinstance(final_result, dict):
+    #     if 'title' not in final_result:
+    #         final_result['title'] = "知识树"
+    #     if 'content' not in final_result:
+    #         final_result['content'] = "这是一个结构化的知识树，包含了相关主题的详细知识点。"
+    #     return KnowledgeTree(**final_result)
+    # elif isinstance(final_result, KnowledgeTree):
+    #     return final_result
+    # else:
+    #     raise ValueError(f"无法处理的结果类型: {type(final_result)}")
+    
 
 if __name__ == "__main__":
     print("=== 测试 get_k_worker ===")
@@ -148,7 +112,7 @@ if __name__ == "__main__":
             #     output_data = result if isinstance(result, dict) else str(result)
             
             with open("sample_doc/test_get_k_output.json", "w", encoding='utf-8') as f:
-                json.dump(result, f, ensure_ascii=False, indent=2)
+                json.dump(result.model_dump(), f, ensure_ascii=False, indent=2)
             print("✅ 输出文件已保存: sample_doc/test_get_k_output.json")
             
         except Exception as save_error:

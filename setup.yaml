@@ -2,13 +2,13 @@
 llm:
   #--------------------------------------#
   # 本地Qwen-30B模型  
-  model_name: "/home/llm/models/pretrained/Qwen3-30B-A3B-FP8"
-  openai_api_key: "sk-Feb1st"
-  openai_api_base: "http://172.16.86.53:9981/v1/"
-  temperature: 0
-  streaming: true
-  model_kwargs: 
-    "response_format": {"type": "json_object"}  # 关键：启用 JSON 模式  
+  # model_name: "/home/llm/models/pretrained/Qwen3-30B-A3B-FP8"
+  # openai_api_key: "sk-Feb1st"
+  # openai_api_base: "http://172.16.86.53:9981/v1/"
+  # temperature: 0
+  # streaming: true
+  # model_kwargs: 
+  #   "response_format": {"type": "json_object"}  # 关键：启用 JSON 模式  
 
   # model_name: "/home/llm/models/pretrained/Qwen3-14B"
   # openai_api_key: "sk-Feb1st"
@@ -25,12 +25,12 @@ llm:
   #   "response_format": {"type": "json_object"}  # 关键：启用 JSON 模式  
   #--------------------------------------#
   # DeepSeek——DeepSeek-Chat
-  # model_name: "deepseek-chat"
-  # openai_api_key: "sk-1d437538f5404275b48425bb9e761613"
-  # openai_api_base: "https://api.deepseek.com"
-  # temperature: 0
-  # model_kwargs: 
-  #   "response_format": {"type": "json_object"}  # 关键：启用 JSON 模式
+  model_name: "deepseek-chat"
+  openai_api_key: "sk-1d437538f5404275b48425bb9e761613"
+  openai_api_base: "https://api.deepseek.com"
+  temperature: 0
+  model_kwargs: 
+    "response_format": {"type": "json_object"}  # 关键：启用 JSON 模式
   #--------------------------------------#
   # 百度云千帆——百度文心ERNIE-4.5-21B-A3B
   # model_name: "ernie-4.5-21b-a3b"
@@ -79,7 +79,7 @@ graph_config:
   get_k_prompt: "prompt/get_k_prompt_simple.md"  # 使用简化版本的提示词
   eva_k_prompt: "prompt/eva_k_prompt.md"
   recorrect_k_prompt: "prompt/recorrect_k_prompt.md"
-  eva_k_times: 5  # 执行eva_k的次数
+  eva_k_times: 2  # 执行评估知识树完整性的次数
   batch_size: 25
   include_answers: false
   max_retries: 3

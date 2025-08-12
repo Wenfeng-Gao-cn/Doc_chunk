@@ -132,5 +132,6 @@ if __name__ == "__main__":
         sys.exit(1)
     
     file_name = sys.argv[1]
-    result = asyncio.run(gen_chunk_graph(file_name))
-    print(f"执行结果: {result}")
+    # result = asyncio.run(gen_chunk_graph(file_name))
+    asyncio.run(gen_chunk_graph(file_name))
+    # print(f"执行结果: {result}")

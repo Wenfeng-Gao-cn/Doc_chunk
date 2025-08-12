@@ -1,0 +1,4 @@
+2025-08-12 09:44:24,220 - __main__ - ERROR - 读取文件失败: 不支持的文件格式: .json
+2025-08-12 09:44:24,223 - __main__ - ERROR - 工作流执行失败: 不支持的文件格式: .json
+2025-08-12 09:48:25,056 - __main__ - ERROR - 读取文件失败: 需要安装pandas和openpyxl库: pip install pandas openpyxl
+2025-08-12 09:48:25,056 - __main__ - ERROR - 工作流执行失败: 需要安装pandas和openpyxl库: pip install pandas openpyxl

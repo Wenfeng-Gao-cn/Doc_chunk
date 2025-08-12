@@ -1,5 +1,21 @@
 import re
 import string
+from pydantic import BaseModel, Field
+import yaml
+from Utils.llm import get_llm
+from Utils.logger import setup_logger
+from langchain_core.output_parsers import JsonOutputParser
+from langchain.prompts  import PromptTemplate
+from rich import print
+
+logger = setup_logger(__name__)
+
+class llm_match_result(BaseModel):
+    found: bool = Field(True, description="切片内容是否与原文匹配，如果切片内容存在于原文中返回true，否则返回false")
+    corrected_content: str = Field(
+        ..., 
+        description="如果切片内容不匹配，返回修正后的内容"
+    )
 
 class FormatInsensitiveMatcher:
     def __init__(self):
@@ -32,6 +48,48 @@ class FormatInsensitiveMatcher:
             return True
         clean_doc = self.clean_text(document)
         return clean_target in clean_doc
+
+    async def _match_llm_chain(self, target, document) -> llm_match_result: 
+        setup_file = "setup.yaml"
+        try:
+            with open(setup_file, encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+                llm_match_prompt_file = config["graph_config"]["llm_matcher_prompt"]
+                try:
+                    with open(llm_match_prompt_file, encoding='utf-8') as prompt_file:
+                        llm_match_prompt = prompt_file.read()
+                except FileNotFoundError:
+                    logger.error(f"Prompt file not found: {llm_match_prompt_file}")
+                    raise
+                except Exception as e:
+                    logger.error(f"Error reading prompt file: {e}")
+                    raise
+        except yaml.YAMLError as ye:
+            logger.error(f"加载{setup_file}配置失败: {str(ye)}", exc_info=True)
+            raise
+        except KeyError as ke:
+            logger.error(f"缺少配置键: {str(ke)} - 文件: {setup_file}", exc_info=True)
+            raise
+        except Exception as e:
+            logger.error(f"加载{setup_file}配置失败: {str(e)}", exc_info=True)
+            raise
+        parser = JsonOutputParser(pydantic_object=llm_match_result)
+        format_instructions = parser.get_format_instructions()
+        input_2_llm = PromptTemplate(
+            input_variables=["target", "document"],
+            template=llm_match_prompt,
+            partial_variables={"format_instructions": format_instructions}
+        )
+        chain = input_2_llm | get_llm("matcher_llm") | parser
+        result_dict = chain.invoke({
+            "target": target,
+            "document": document
+        })
+        return llm_match_result(**result_dict)
+
+    async def contains_match_llm(self, target, document) -> llm_match_result:
+        """使用LLM检查目标内容是否匹配文档，返回匹配结果对象"""
+        return await self._match_llm_chain(target, document)
 
 # 使用示例
 if __name__ == "__main__":

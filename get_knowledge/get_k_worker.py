@@ -3,7 +3,6 @@ from langchain.prompts import PromptTemplate
 from Utils.llm import get_llm
 from Utils.logger import setup_logger
 from langchain_core.output_parsers import JsonOutputParser
-from Utils.gen_JsonOutputParser import gen_JsonOutputParser
 from Utils.graph_state import GraphState,KnowledgeTree,KnowledgeNode
 import yaml
 import asyncio
@@ -46,36 +45,25 @@ async def init_get_k_chain(state: GraphState) -> KnowledgeTree:
         # partial_variables={"format_instructions": parser.get_format_instructions()}
         partial_variables={"format_instructions": format_instructions}
     )
-    print("输入模型的内容:")
-    print(json.dumps(input_2_llm.dict(), indent=2, ensure_ascii=False))
-    input("请确认输入模型的内容是否正确，按Enter继续...")
+    # print("输入模型的内容:")
+    # print(json.dumps(input_2_llm.dict(), indent=2, ensure_ascii=False))
+    # input("请确认输入模型的内容是否正确，按Enter继续...")
 
     k_chain = input_2_llm | get_llm("get_k_llm") | parser
 
-    # Collect all chunks from the stream with real-time printing
-    output_chunks = []
-    print("开始流式处理...", flush=True)
-    
-    async for chunk in k_chain.astream({"source_doc": source_doc}):
-        # 实时打印每个chunk，保持流式效果
-        if chunk:  # 只打印非空chunk
-            # print(f"接收到数据块: {chunk}", flush=True)
-            print(chunk, end="", flush=True)
-            output_chunks.append(chunk)
-        else:
-            print(".", end="", flush=True)  # 空chunk时打印点号表示进度
-    
-    print(f"\n流式处理完成，共接收到 {len(output_chunks)} 个数据块", flush=True)
-    
-    # 处理流式输出结果
-    if not output_chunks:
-        raise ValueError("没有接收到任何数据")
-    
-    # 获取最终完整结果
-    final_result = output_chunks[-1] if output_chunks else {}
-    print(f"最终结果类型: {type(final_result)}", flush=True)
-    
-    return final_result
+    final_result = k_chain.invoke({"source_doc": source_doc})
+
+    # 确保返回结果包含必需字段并转换为KnowledgeTree实例
+    if isinstance(final_result, dict):
+        if 'title' not in final_result:
+            final_result['title'] = "知识树"
+        if 'content' not in final_result:
+            final_result['content'] = "这是一个结构化的知识树，包含了相关主题的详细知识点。"
+        return KnowledgeTree(**final_result)
+    elif isinstance(final_result, KnowledgeTree):
+        return final_result
+    else:
+        raise ValueError(f"无法处理的结果类型: {type(final_result)}")
     # 创建KnowledgeTree实例
     # try:
     #     if isinstance(final_result, dict):

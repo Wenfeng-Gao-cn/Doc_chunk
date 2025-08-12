@@ -8,6 +8,8 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain.prompts  import PromptTemplate
 from Utils.llm import get_llm
 from rich import print
+from Utils.contains_match import FormatInsensitiveMatcher
+import json
 
 logger = setup_logger(__name__)
 
@@ -85,12 +87,31 @@ def init_chunk_list(k_tree: KnowledgeTree, source_file: str) -> ChunkList:
 async def gen_knowledge_chunk(state: GraphState) -> ChunkList:
     """为切片列表中的每个切片的content更改为对应的原文内容"""
     chunk_list = init_chunk_list(state.knowledge_trees, state.source_file)
-    print("开始生成的切片列表的内容修正:")
+    matcher = FormatInsensitiveMatcher()
     for chunk in chunk_list.chunks:
-        
+        print("\n\n===============开始生成的切片列表的内容===============")
+        match_found = False
         chunk.content = (await Recorrect_knowledge(state.source_doc, chunk)).content
-        print(f"\n修正切片: {chunk.title}\n 修正后内容: {chunk.content}\n")
-        print("========================================")
+        print(f"\n切片标题:\n {chunk.title}\n切片内容:\n {chunk.content}\n")
+        while match_found == False :
+            print("-------------------检查内容是否是原文-------------------")
+            match_found = matcher.contains_match(chunk.content, state.source_doc)
+            print(f"检查结果: {match_found}")
+            if match_found == False:
+                print(f"\n通过大模型llm进行原文内容的复查。\n")
+                match_result = await matcher.contains_match_llm(chunk.content, state.source_doc)
+                print(f"\n复查结果:{match_result.found}")
+                match_found = match_result.found
+                if match_found:
+                    print("是原文的内容\n")
+                else:
+                    print(f"复查确认不是原文内容，并进行了更正。\n原内容如下:\n{chunk.content}\n")
+                    chunk.content = match_result.corrected_content
+                    print(f"\n更正内容如下:\n{match_result.corrected_content}\n-------------------再次进行检查-------------------\n")
+        print("-------------------最后切片结果-------------------")
+        print(f"\n切片标题:\n {chunk.title}\n切片内容:\n {chunk.content}\n")
+                
+
     return chunk_list
 
 if __name__ == "__main__":
@@ -120,3 +141,5 @@ if __name__ == "__main__":
     result = asyncio.run(main())
     print("生成的知识切片:")
     print(result.model_dump_json())
+    with open("sample_doc/test_gen_k_chunk_output.json", "w", encoding='utf-8') as f:
+        json.dump(result.model_dump(), f, ensure_ascii=False, indent=2)

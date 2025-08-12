@@ -36,7 +36,8 @@ def setup_logger(name: str, debug_enabled: Optional[bool] = None) -> logging.Log
     logging.basicConfig(
         filename='logs/error.log',
         level=logging.ERROR,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        encoding='utf-8'
     )
     
     logger = logging.getLogger(name)
@@ -47,7 +48,7 @@ def setup_logger(name: str, debug_enabled: Optional[bool] = None) -> logging.Log
     
     # 添加INFO级别日志处理器（如果启用）
     if debug_enabled:
-        info_handler = logging.FileHandler('logs/debug.log')
+        info_handler = logging.FileHandler('logs/debug.log', encoding='utf-8')
         info_handler.setLevel(logging.INFO)
         info_handler.setFormatter(logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

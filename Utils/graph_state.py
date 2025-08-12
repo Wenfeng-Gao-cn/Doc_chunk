@@ -1,6 +1,6 @@
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
-from langchain_openai import ChatOpenAI
+
 
 # 知识树模型定义
 class KnowledgeNode(BaseModel):

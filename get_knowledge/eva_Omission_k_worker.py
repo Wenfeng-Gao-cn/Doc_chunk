@@ -11,7 +11,7 @@ import asyncio
 from Utils.graph_state import GraphState, KnowledgeTree, KnowledgeNode
 from pydantic import BaseModel
 from pydantic.fields import Field
-from typing import  Optional, List,
+from typing import Optional, List
 from langchain_core.output_parsers import JsonOutputParser
 from Utils.llm import get_llm
 from Utils.logger import setup_logger

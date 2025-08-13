@@ -97,25 +97,25 @@ async def gen_chunk_graph(file_name: str) -> bool:
             stream_mode=["value"]
         ):
             # 输出事件信息
-            event_type = event["event"]
+            # event_type = event["event"]
             node_name = event.get("name", "unknown")
             
-            print(f"事件类型: {event_type}")
-            print(f"节点名称: {node_name}")
+            # # print(f"事件类型: {event_type}")
+            # # print(f"节点名称: {node_name}")
             
-            if "data" in event:
-                data = event["data"]
-                if "input" in data:
-                    print(f"输入数据: {type(data['input'])}")
-                if "output" in data:
-                    print(f"输出数据: {type(data['output'])}")
-                    # 如果是最后一个节点的输出，检查结果
-                    if node_name == "create_chunks" and isinstance(data["output"], dict):
-                        if "result" in data["output"]:
-                            final_result = data["output"]["result"]
-                            print(f"最终结果: {final_result}")
+            # if "data" in event:
+            #     data = event["data"]
+            #     if "input" in data:
+            #         print(f"输入数据: {type(data['input'])}")
+            #     if "output" in data:
+            #         print(f"输出数据: {type(data['output'])}")
+            #         # 如果是最后一个节点的输出，检查结果
+            #         if node_name == "create_chunks" and isinstance(data["output"], dict):
+            #             if "result" in data["output"]:
+            #                 final_result = data["output"]["result"]
+            #                 print(f"最终结果: {final_result}")
             
-            print("---")
+            # print("---")
             
         print("=== 工作流执行完成 ===")
         return final_result
@@ -127,11 +127,9 @@ async def gen_chunk_graph(file_name: str) -> bool:
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) != 2:
-        print("Usage: python gen_chunk_graph.py <filename>")
-        sys.exit(1)
+    if len(sys.argv) == 2:
+        file_name = sys.argv[1]
+    else:
+        file_name = input("请输入要处理的文件名: ")
     
-    file_name = sys.argv[1]
-    # result = asyncio.run(gen_chunk_graph(file_name))
     asyncio.run(gen_chunk_graph(file_name))
-    # print(f"执行结果: {result}")

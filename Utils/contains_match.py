@@ -11,11 +11,23 @@ from rich import print
 logger = setup_logger(__name__)
 
 class llm_match_result(BaseModel):
-    found: bool = Field(True, description="切片内容是否与原文匹配，如果切片内容存在于原文中返回true，否则返回false")
-    corrected_content: str = Field(
-        ..., 
-        description="如果切片内容不匹配，返回修正后的内容"
+    
+    reason: str = Field(
+        ...,
+        description="错误分析，评估理由，修改操作计划"
     )
+    found: bool = Field(True, description="验证结果：切片内容是否与原文匹配，如果切片内容存在于原文中返回true，否则返回false")
+
+class llm_recorrect(BaseModel):
+    corrected_content: str = Field(
+        ...,
+        description="更正后的，正确的内容"
+    )
+
+class llm_eva_result(BaseModel):
+    reason: str
+    found: bool
+    corrected_content: str    
 
 class FormatInsensitiveMatcher:
     def __init__(self):
@@ -23,7 +35,7 @@ class FormatInsensitiveMatcher:
         self.ignore_chars = set(
             string.whitespace + 
             string.punctuation + 
-            '、。！？，；：“”‘’（）【】《》……—·＇＂＃＄％＆＇＊＋－／：＜＝＞＠［＼］＾＿｀｛｜｝～' +
+            '、。！？，；：“”‘’（）【】《》……—·＇＂＃＄％＆＇＊＋－／：＜＝＞＠［＼］＾＿｀｛｜｝～——' +
             '*_`#'  # Markdown 符号
         )
         # 预编译正则表达式（包含大小写忽略）
@@ -49,15 +61,18 @@ class FormatInsensitiveMatcher:
         clean_doc = self.clean_text(document)
         return clean_target in clean_doc
 
-    async def _match_llm_chain(self, target, document) -> llm_match_result: 
+    async def _match_llm_chain(self,chunk_title, target, document) -> llm_eva_result: 
         setup_file = "setup.yaml"
         try:
             with open(setup_file, encoding='utf-8') as f:
                 config = yaml.safe_load(f)
                 llm_match_prompt_file = config["graph_config"]["llm_matcher_prompt"]
+                llm_recorrect_prompt_file = config["graph_config"]["llm_recorrect_prompt"]
                 try:
                     with open(llm_match_prompt_file, encoding='utf-8') as prompt_file:
                         llm_match_prompt = prompt_file.read()
+                    with open(llm_recorrect_prompt_file,encoding='utf-8') as prompt_file:
+                        self.llm_recorrect_prompt = prompt_file.read()
                 except FileNotFoundError:
                     logger.error(f"Prompt file not found: {llm_match_prompt_file}")
                     raise
@@ -76,20 +91,51 @@ class FormatInsensitiveMatcher:
         parser = JsonOutputParser(pydantic_object=llm_match_result)
         format_instructions = parser.get_format_instructions()
         input_2_llm = PromptTemplate(
-            input_variables=["target", "document"],
+            input_variables=["chunk_title","target", "document"],
             template=llm_match_prompt,
             partial_variables={"format_instructions": format_instructions}
         )
         chain = input_2_llm | get_llm("matcher_llm") | parser
         result_dict = chain.invoke({
+            "chunk_title": chunk_title,
             "target": target,
             "document": document
         })
-        return llm_match_result(**result_dict)
+        result = llm_match_result(**result_dict)
+        eval_result = llm_eva_result(
+            reason=result.reason,
+            found=result.found,
+            corrected_content=""
+        )
+        
+        if not result.found:
+            print(">>>通过大模型进行内容修复>>>")
+            correct_result = await self._recorrect_llm_chain(chunk_title,target, result.reason, document)
+            eval_result.corrected_content = correct_result.corrected_content
 
-    async def contains_match_llm(self, target, document) -> llm_match_result:
-        """使用LLM检查目标内容是否匹配文档，返回匹配结果对象"""
-        return await self._match_llm_chain(target, document)
+        return eval_result
+
+    async def _recorrect_llm_chain(self, chunk_title,target, reason, document) -> llm_recorrect:
+        parser = JsonOutputParser(pydantic_object=llm_eva_result)
+        format_instructions = parser.get_format_instructions()
+        input_2_llm = PromptTemplate(
+            input_variables=["chunk_title","target","reason","document"],
+            template=self.llm_recorrect_prompt,
+            partial_variables={"format_instructions": format_instructions}
+        )         
+        chain = input_2_llm | get_llm("matcher_llm") | parser
+        result_dict = chain.invoke({
+            "chunk_title": chunk_title,
+            "target": target,
+            "reason": reason,
+            "document": document
+        })
+        result = llm_recorrect(**result_dict)
+        return result
+
+    async def contains_match_llm(self, chunk_title,target, document) -> llm_eva_result:
+        """使用LLM检查目标内容是否匹配文档，返回评估结果对象"""
+        return await self._match_llm_chain(chunk_title,target, document)
 
 # 使用示例
 if __name__ == "__main__":

@@ -431,7 +431,21 @@ class VectorDBManager:
             logger.error("向量数据库初始化失败")
             return []
             
-        return self.vectorstore.similarity_search(query, k=k)
+        # 将query与所有metadata字段组合进行搜索
+        metadata_fields = [
+            "chunk_title", "chunk_content", "source_file", 
+            "knowledge_tree_title", "chunk_type"
+        ]
+        
+        # 为每个metadata字段创建增强查询
+        enhanced_queries = [query]
+        for field in metadata_fields:
+            enhanced_queries.append(f"{field}:{query}")
+            
+        # 合并所有增强查询
+        combined_query = " ".join(enhanced_queries)
+        
+        return self.vectorstore.similarity_search(combined_query, k=k)
 
 
 def main():
@@ -468,7 +482,8 @@ def main():
         
         # 可选：测试搜索功能
         print("\n=== 测试搜索功能 ===")
-        test_query = "资费公示"
+        # test_query = "资费公示"
+        test_query = input("请输入需要搜索的内容：")
         results = vector_manager.search_similar(test_query, k=3)
         
         print(f"搜索查询: {test_query}")

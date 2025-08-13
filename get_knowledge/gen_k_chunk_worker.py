@@ -99,8 +99,9 @@ async def gen_knowledge_chunk(state: GraphState) -> ChunkList:
             print(f"检查结果: {match_found}")
             if match_found == False:
                 print(f"\n通过大模型llm进行原文内容的复查。\n")
-                match_result = await matcher.contains_match_llm(chunk.content, state.source_doc)
+                match_result = await matcher.contains_match_llm(chunk.title,chunk.content, state.source_doc)
                 print(f"\n复查结果:{match_result.found}")
+                print(f"\n理由：{match_result.reason}")
                 match_found = match_result.found
                 if match_found:
                     print("是原文的内容\n")
@@ -115,7 +116,7 @@ async def gen_knowledge_chunk(state: GraphState) -> ChunkList:
     return chunk_list
 
 if __name__ == "__main__":
-    source_doc_file = "sample_doc/11、《中华人民共和国电信条例》.txt"
+    source_doc_file = "sample_doc/云趣运维文档1754623245145/语音机器人安装手册V1.7.pdf.txt"
     test_knowledge_trees_file = "sample_doc/test_eva_k_output.json"
     try:
         with open(source_doc_file, 'r', encoding='utf-8') as f:

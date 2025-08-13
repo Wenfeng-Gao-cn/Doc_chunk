@@ -45,32 +45,32 @@ async def init_get_k_chain(state: GraphState) -> KnowledgeTree:
     # input("请确认输入模型的内容是否正确，按Enter继续...")
 
     k_chain = input_2_llm | get_llm("get_k_llm") | parser
-    result = k_chain.invoke({"source_doc": source_doc})
-    final_result = KnowledgeTree(**result)
+    final_result = k_chain.invoke({"source_doc": source_doc})
+    # final_result = KnowledgeTree(**result)
 
     print(f"生成知识树：\n{final_result}\n")
 
     # return final_result
-    return final_result
+    # return final_result
 
     # 确保返回结果包含必需字段并转换为KnowledgeTree实例
-    # if isinstance(final_result, dict):
-    #     if 'title' not in final_result:
-    #         final_result['title'] = "知识树"
-    #     if 'content' not in final_result:
-    #         final_result['content'] = "这是一个结构化的知识树，包含了相关主题的详细知识点。"
-    #     return KnowledgeTree(**final_result)
-    # elif isinstance(final_result, KnowledgeTree):
-    #     return final_result
-    # else:
-    #     raise ValueError(f"无法处理的结果类型: {type(final_result)}")
+    if isinstance(final_result, dict):
+        if 'title' not in final_result:
+            final_result['title'] = "知识树"
+        if 'content' not in final_result:
+            final_result['content'] = "这是一个结构化的知识树，包含了相关主题的详细知识点。"
+        return KnowledgeTree(**final_result)
+    elif isinstance(final_result, KnowledgeTree):
+        return final_result
+    else:
+        raise ValueError(f"无法处理的结果类型: {type(final_result)}")
     
 
 if __name__ == "__main__":
     print("=== 测试 get_k_worker ===")
     
     # 测试1: 初始化GraphState
-    source_doc_file = "sample_doc/11、《中华人民共和国电信条例》.txt"
+    source_doc_file = "sample_doc/云趣运维文档1754623245145/语音机器人安装手册V1.7.pdf.txt"
     try:
         with open(source_doc_file, encoding='utf-8') as f:
             source_doc_content = f.read()
@@ -78,10 +78,10 @@ if __name__ == "__main__":
         print(f"\n测试1 - 初始化GraphState成功: {test_state.source_file}")
     except FileNotFoundError:
         print(f"\n测试1 - 文件未找到: {source_doc_file}")
-        # Create a simple test case with the content from your paste
-        source_doc_content = "中华人民共和国电信条例示例内容"
-        test_state = GraphState(source_doc=source_doc_content, source_file="test_content")
-        print(f"\n测试1 - 使用测试内容初始化GraphState成功")
+        # # Create a simple test case with the content from your paste
+        # source_doc_content = "中华人民共和国电信条例示例内容"
+        # test_state = GraphState(source_doc=source_doc_content, source_file="test_content")
+        # print(f"\n测试1 - 使用测试内容初始化GraphState成功")
     
     # 测试2: 调用init_get_k_chain
     try:

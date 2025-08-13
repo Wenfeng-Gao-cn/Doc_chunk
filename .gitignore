@@ -31,6 +31,9 @@ env/
 logs/
 *.log
 
+# Database
+chroma_db/
+
 # IDE
 .vscode/
 .idea/

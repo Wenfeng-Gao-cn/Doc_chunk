@@ -6,6 +6,7 @@ readfile_2_str.py - 文件读取模块
 - Excel文档 (.xlsx, .xls)
 - Markdown文档 (.md)
 - 文本文档 (.txt)
+- PDF文档 (.pdf)
 """
 
 import os
@@ -153,6 +154,9 @@ def read_file_to_string(file_path: str) -> str:
     elif file_extension in ['.xlsx', '.xls']:
         return read_excel_file(file_path)
     
+    elif file_extension == '.pdf':
+        return read_pdf_file(file_path)
+    
     else:
         raise ValueError(f"不支持的文件格式: {file_extension}")
 
@@ -179,11 +183,42 @@ def get_file_info(file_path: str) -> Dict[str, Any]:
         'size_bytes': file_stat.st_size,
         'size_mb': round(file_stat.st_size / (1024 * 1024), 2),
         'absolute_path': file_path_obj.absolute(),
-        'is_supported': file_path_obj.suffix.lower() in ['.txt', '.md', '.docx', '.doc', '.xlsx', '.xls']
+        'is_supported': file_path_obj.suffix.lower() in ['.txt', '.md', '.docx', '.doc', '.xlsx', '.xls', '.pdf']
     }
 
 
 # 示例使用函数
+def read_pdf_file(file_path: str) -> str:
+    """
+    读取PDF文档
+    
+    Args:
+        file_path (str): 文件路径
+        
+    Returns:
+        str: 文件内容
+        
+    Raises:
+        ImportError: 需要安装PyPDF2库
+        Exception: 读取PDF失败
+    """
+    try:
+        from PyPDF2 import PdfReader
+        
+        content = []
+        with open(file_path, 'rb') as file:
+            reader = PdfReader(file)
+            for page in reader.pages:
+                content.append(page.extract_text())
+        
+        return '\n'.join(content)
+    
+    except ImportError:
+        raise ImportError("需要安装PyPDF2库: pip install PyPDF2")
+    except Exception as e:
+        raise Exception(f"读取PDF文档失败: {str(e)}")
+
+
 def demo():
     """
     演示模块功能
@@ -195,7 +230,8 @@ def demo():
         "sample_doc/11、《中华人民共和国电信条例》.txt",
         "sample_doc/简化方案说明.md", 
         "sample_doc/11、《中华人民共和国电信条例》.docx",
-        "sample_doc/27、用户申诉责任认定标准（V2.0）（正式印发）-20250327.xlsx"
+        "sample_doc/27、用户申诉责任认定标准（V2.0）（正式印发）-20250327.xlsx",
+        "sample_doc/云趣运维文档1754623245145/语音机器人安装手册V1.7.pdf"
     ]
     
     for file_path in test_files:
@@ -211,7 +247,10 @@ def demo():
             content = read_file_to_string(file_path)
             print(f"内容长度: {len(content)} 字符")
             print(f"内容预览: {content[:100]}...")
-            
+            file_name=file_path+".txt"
+            with open(file_name,'w',encoding='utf-8') as f:
+                f.write(content)
+
         except Exception as e:
             print(f"错误: {str(e)}")
 

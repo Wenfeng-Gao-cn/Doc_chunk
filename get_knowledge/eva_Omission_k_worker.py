@@ -259,8 +259,8 @@ async def init_evaluation_chain(state: GraphState) -> KnowledgeTree:
     return new_tree
 
 if __name__ == "__main__":
-    source_doc_file = "sample_doc/11、《中华人民共和国电信条例》.txt"
-    test_knowledge_trees_file = "sample_doc\\test_get_k_output.json"
+    source_doc_file = "sample_doc/云趣运维文档1754623245145/语音机器人安装手册V1.7.pdf.txt"
+    test_knowledge_trees_file = "sample_doc/test_get_k_output.json"
     try:
         with open(source_doc_file, 'r', encoding='utf-8') as f:
             source_doc = f.read()

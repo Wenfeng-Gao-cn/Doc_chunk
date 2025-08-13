@@ -62,25 +62,38 @@ Qwen30B_noJson_llm:  # 本地Qwen-30B模型 非JSON模式
   temperature: 0
   streaming: true
 
+Splitter_config: #文本分割器配置
+  Recursive_config: #递归字符分割（按语义边界）
+    chunk_size: 1000
+    chunk_overlap: 200
+    separators: ["\n\n", "\n", "。", "？", " ", ""]
+  SentenceTransformers_config: #​按语义分割（嵌入模型驱动）
+    #---------------通用设置--------------------#
+    # breakpoint_threshold_type: "percentile"
+    # breakpoint_threshold_amount: 0.8  # 仅切割显著跳跃点
+    # sentence_split_regex: "(?<=[。？！])"
+    # min_chunk_size: 50                  # 避免碎片化
+    # buffer_size: 2 # 扩大上下文窗口
+    #---------------学术文献场景-------------------#
+    # breakpoint_threshold_type: "gradient"  # 策略类型
+    # breakpoint_threshold_amount: 90.0       # 切割前10%的渐变峰值（默认95.0）
+    # buffer_size: 10                         # 梯度计算窗口大小
+    # add_start_index: True                     # 保留原始文本位置
+    #---------------技术报告优化版（捕捉渐进主题）-------------------#
+    # breakpoint_threshold_type: "gradient"
+    # breakpoint_threshold_amount: 85.0        # 主题切换频繁时降低阈值
+    #---------------技术文档优化版（降低敏感度）---------------------#
+    breakpoint_threshold_type: "standard_deviation"
+    breakpoint_threshold_amount: 2.0                # 专业术语易导致跳跃，需降低N值
+    buffer_size: 5                                   # 扩大上下文窗口
 
 
-
-
-# STD_QA_file:
-#   file_name: "XTY问题库.csv"
-#   has_header: true
-# Match_QA_config:
-#   batch_size: 25
-#   include_answers: false
-#   max_retries: 3
-#   max_records: 10000
-#   stream_mode: false  
-#   debug_logger: true
 
 # 向量数据库配置
 vectordb_config:
   persist_directory: "./chroma_db"  # 向量数据库存储目录
-  collection_name: "xty_qa_collection"  # 集合名称
+  # collection_name: "xty_qa_collection"  # 集合名称
+  collection_name: "general_test_collection"
   batch_size: 50  # 批量处理大小
   max_records: 0  # 最大处理记录数（0表示处理所有记录）
 
@@ -91,6 +104,7 @@ graph_config:
   recorrect_k_llm: "deepseek-chat-DS_llm"
   matcher_llm: "deepseek-reasoner-DS_llm"  # 查找字符串是否是原文的llm
   RAG_chat_llm: "Qwen30B_noJson_llm"
+  gen_metadata_llm: ["Qwen30B_llm","ernie-4.5-21b-a3b_llm","deepseek-chat-DS_llm"] #生成切片的元数据。先使用第一个llm配置，如果出错，例如超出了模型的上下文就会按顺序使用第二个llm配置，直到最后一个llm配置
 
   llm_matcher_prompt: "prompt/llm_matcher_prompt.md"
   get_k_prompt: "prompt/get_k_prompt.md"  # 使用简化版本的提示词
@@ -98,6 +112,7 @@ graph_config:
   llm_recorrect_prompt: "prompt/llm_recorrect_prompt.md" #大模型修复错误的知识点内容的提示词，让知识点内容能够与原文一致
   recorrect_k_prompt: "prompt/recorrect_k_prompt.md"
   chat_prompt: "prompt/chat_prompt.md"
+  gen_metadata_prompt: "prompt/gen_metadata_prompt.md" #为切片生成metadata的提示词
   eva_k_times: 2  # 执行评估知识树完整性的次数
   batch_size: 25
   include_answers: false

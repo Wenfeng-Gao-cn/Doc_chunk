@@ -148,3 +148,9 @@ Traceback (most recent call last):
   File "c:\Users\gwf\Documents\doc_chunk\Utils\llm.py", line 38, in get_llm_from_list
     raise IndexError(f"seq参数{seq}超出范围(0-{len(type_value)-1})")
 IndexError: seq参数3超出范围(0-2)
+2025-08-13 18:27:46,958 - __main__ - ERROR - 程序执行失败: 文件不存在: sample_doc\云趣运维文档1754623245145\语音机器人安装手册V1.7.pdf
+2025-08-14 09:05:35,929 - __main__ - ERROR - 加载LLM配置失败: seq参数3超出范围(0-2) - 文件: setup.yaml
+Traceback (most recent call last):
+  File "/home/yunqu/Doc_chunk/Utils/llm.py", line 59, in get_llm_from_list
+    raise IndexError(f"seq参数{seq}超出范围(0-{len(type_value)-1})")
+IndexError: seq参数3超出范围(0-2)

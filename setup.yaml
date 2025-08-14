@@ -4,41 +4,37 @@ deepseek-chat-DS_llm:
   openai_api_key: "sk-1d437538f5404275b48425bb9e761613"
   openai_api_base: "https://api.deepseek.com"
   temperature: 0
-  model_kwargs: 
-    "response_format": {"type": "json_object"}  # 关键：启用 JSON 模式
+
+deepseek-chat-siliconflow_llm:  #硅基流动
+  model_name: "deepseek-ai/DeepSeek-V3" 
+  openai_api_key: "sk-xucqkbqtmjyemzpumujgrtrfqmqxgapkgzmuqlrmhnyvgbhm"
+  openai_api_base: "https://api.siliconflow.cn"
+  temperature: 0
+
 
 ernie-4.5-21b-a3b_llm:   # 百度云千帆——百度文心ERNIE-4.5-21B-A3B
   model_name: "ernie-4.5-21b-a3b"
   openai_api_key: "bce-v3/ALTAK-o6dxOMYkKAAgEYvkcn5pg/d1da7609a6dfee558cdbf43386f74e04cb30897a"
   openai_api_base: "https://qianfan.baidubce.com/v2/"
   temperature: 0
-  model_kwargs: 
-    "response_format": {"type": "json_object"}  # 关键：启用 JSON 模式
 
 ERNIE-4.5-300B_llm:  #硅基流动
   model_name: "baidu/ERNIE-4.5-300B-A47B" 
   openai_api_key: "sk-xucqkbqtmjyemzpumujgrtrfqmqxgapkgzmuqlrmhnyvgbhm"
   openai_api_base: "https://api.siliconflow.cn"
   temperature: 0
-  model_kwargs: 
-    "response_format": {"type": "json_object"}  # 关键：启用 JSON 模式 
 
 Qwen30B_llm:  # 本地Qwen-30B模型  
   model_name: "/home/llm/models/pretrained/Qwen3-30B-A3B-FP8"
   openai_api_key: "sk-Feb1st"
   openai_api_base: "http://172.16.86.53:9981/v1/"
   temperature: 0
-  streaming: true
-  model_kwargs: 
-    "response_format": {"type": "json_object"}  # 关键：启用 JSON 模式 
 
 ernie-4.5-21b-a3b: # 百度云千帆——百度文心ERNIE-4.5-21B-A3B
   model_name: "ernie-4.5-21b-a3b"
   openai_api_key: "bce-v3/ALTAK-o6dxOMYkKAAgEYvkcn5pg/d1da7609a6dfee558cdbf43386f74e04cb30897a"
   openai_api_base: "https://qianfan.baidubce.com/v2/"
   temperature: 0
-  model_kwargs: 
-    "response_format": {"type": "json_object"}  # 关键：启用 JSON 模式    
 
 embedding_model: # 嵌入模型配置
   model_name: "Pro/BAAI/bge-m3"  # 支持OpenAI模型和第三方模型
@@ -46,21 +42,6 @@ embedding_model: # 嵌入模型配置
   openai_api_base: "https://api.siliconflow.cn"  
   max_retries: 3  # 最大重试次数
   request_timeout: 60  # 请求超时时间（秒）
-
-deepseek-reasoner-DS_llm:
-  model_name: "deepseek-reasoner"
-  openai_api_key: "sk-1d437538f5404275b48425bb9e761613"
-  openai_api_base: "https://api.deepseek.com"
-  temperature: 0
-  model_kwargs: 
-    "response_format": {"type": "json_object"}  # 关键：启用 JSON 模式
-
-Qwen30B_noJson_llm:  # 本地Qwen-30B模型 非JSON模式 
-  model_name: "/home/llm/models/pretrained/Qwen3-30B-A3B-FP8"
-  openai_api_key: "sk-Feb1st"
-  openai_api_base: "http://172.16.86.53:9981/v1/"
-  temperature: 0
-  streaming: true
 
 Splitter_config: #文本分割器配置
   Recursive_config: #递归字符分割（按语义边界）
@@ -97,27 +78,24 @@ vectordb_config:
   batch_size: 50  # 批量处理大小
   max_records: 0  # 最大处理记录数（0表示处理所有记录）
 
+# 向量数据库的召回配置
+retriever_config:
+  # search_type: "similarity_score_threshold"
+  search_type: "mmr"
+  search_kwargs:
+    k: 15 
+    score_threshold: 0.75
+    fetch_k: 50
+    lambda_mult: 0.3
+
 # QA匹配配置
 graph_config:
-  get_k_llm: "deepseek-chat-DS_llm"
-  eva_k_llm: "deepseek-chat-DS_llm" #评估知识点能否覆盖全文并补充知识点的llm，
-  recorrect_k_llm: "deepseek-chat-DS_llm"
-  matcher_llm: "deepseek-reasoner-DS_llm"  # 查找字符串是否是原文的llm
-  RAG_chat_llm: "Qwen30B_noJson_llm"
-  gen_metadata_llm: ["Qwen30B_llm","ernie-4.5-21b-a3b_llm","deepseek-chat-DS_llm"] #生成切片的元数据。先使用第一个llm配置，如果出错，例如超出了模型的上下文就会按顺序使用第二个llm配置，直到最后一个llm配置
+  RAG_chat_llm: ["Qwen30B_llm","ernie-4.5-21b-a3b_llm","deepseek-chat-siliconflow_llm"]
+  gen_metadata_llm: ["Qwen30B_llm","ernie-4.5-21b-a3b_llm","deepseek-chat-siliconflow_llm","deepseek-chat-DS_llm"] #生成切片的元数据。先使用第一个llm配置，如果出错，例如超出了模型的上下文就会按顺序使用第二个llm配置，直到最后一个llm配置
 
-  llm_matcher_prompt: "prompt/llm_matcher_prompt.md"
-  get_k_prompt: "prompt/get_k_prompt.md"  # 使用简化版本的提示词
-  eva_k_prompt: "prompt/eva_k_prompt.md" #评估知识点能否覆盖全文的提示词
-  llm_recorrect_prompt: "prompt/llm_recorrect_prompt.md" #大模型修复错误的知识点内容的提示词，让知识点内容能够与原文一致
-  recorrect_k_prompt: "prompt/recorrect_k_prompt.md"
   chat_prompt: "prompt/chat_prompt.md"
   gen_metadata_prompt: "prompt/gen_metadata_prompt.md" #为切片生成metadata的提示词
-  eva_k_times: 2  # 执行评估知识树完整性的次数
-  batch_size: 25
-  include_answers: false
-  max_retries: 3
-  max_records: 10000
+
   app_stream_mode: true  # 是否使用流式处理
   debug_logger: true
 

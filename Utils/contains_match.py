@@ -95,7 +95,7 @@ class FormatInsensitiveMatcher:
             template=llm_match_prompt,
             partial_variables={"format_instructions": format_instructions}
         )
-        chain = input_2_llm | get_llm("matcher_llm") | parser
+        chain = input_2_llm | get_llm("matcher_llm",True) | parser
         result_dict = chain.invoke({
             "chunk_title": chunk_title,
             "target": target,
@@ -123,7 +123,7 @@ class FormatInsensitiveMatcher:
             template=self.llm_recorrect_prompt,
             partial_variables={"format_instructions": format_instructions}
         )         
-        chain = input_2_llm | get_llm("matcher_llm") | parser
+        chain = input_2_llm | get_llm("matcher_llm",True) | parser
         result_dict = chain.invoke({
             "chunk_title": chunk_title,
             "target": target,

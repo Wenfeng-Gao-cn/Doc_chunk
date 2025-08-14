@@ -62,9 +62,12 @@ async def add_metadata_2_chunk(source_file:str,source_doc:str,chunk_str:str) -> 
     
     last_error = None
     seq = 0
+    llm_model_name = ""
     while True:
         try:
-            chain = input_2_llm | get_llm_from_list("gen_metadata_llm", seq) | parser
+            llm = get_llm_from_list("gen_metadata_llm", seq,True)
+            llm_model_name=llm.model_name
+            chain = input_2_llm | llm | parser
             result_dict = chain.invoke({
                 "source_doc": source_doc,
                 "chunk_str": chunk_str
@@ -78,8 +81,8 @@ async def add_metadata_2_chunk(source_file:str,source_doc:str,chunk_str:str) -> 
             raise
         except Exception as e:
             last_error = e
-            logger.warning(f"LLM调用失败(seq={seq}): {str(e)}，尝试下一个配置...")
-            print(f"LLM调用失败(seq={seq}): {str(e)}，尝试下一个配置...")
+            logger.warning(f"LLM:【{llm_model_name}】调用失败(seq={seq}): {str(e)}，尝试下一个配置...")
+            print(f"LLM:【{llm_model_name}】调用失败(seq={seq}): {str(e)}，尝试下一个配置...")
             seq += 1
 
     result = context(**result_dict)
@@ -100,7 +103,7 @@ if __name__ == "__main__":
 
     file_name = "Robot4.0安装说明文档V1.8.docx"
     from Utils.readfile_2_str import read_file_to_string
-    source_doc = read_file_to_string("sample_doc\云趣运维文档1754623245145\语音机器人安装手册V1.7.pdf")
+    source_doc = read_file_to_string("sample_doc/云趣运维文档1754623245145/语音机器人安装手册V1.7.pdf")
     chunk_list=["""
 server {
         listen 7773;  # 监听外部访问的端口，可以改为其他端口

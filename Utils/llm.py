@@ -6,15 +6,18 @@ from Utils.logger import setup_logger
 # 初始化logger
 logger = setup_logger(__name__)
 
-def get_llm(type:str="llm") -> ChatOpenAI:
+def get_llm(type:str="llm",json_ouput=False) -> ChatOpenAI:
     file= "setup.yaml"
     try:
         with open(file, encoding='utf-8') as f:
             data = yaml.safe_load(f)
             if type != "llm":
                 type= data["graph_config"][type]
-            llm_params = data[type]    
-            llm = ChatOpenAI(**llm_params)
+            llm_params = data[type]
+            if json_ouput:
+                llm = ChatOpenAI(**llm_params, model_kwargs={"response_format": {"type": "json_object"}})
+            else:
+                llm = ChatOpenAI(**llm_params)
             return(llm)  
     except yaml.YAMLError as ye:
         logger.error(f"YAML解析失败: {str(ye)} - 文件: {file}", exc_info=True)
@@ -26,7 +29,7 @@ def get_llm(type:str="llm") -> ChatOpenAI:
         logger.error(f"加载LLM配置失败: {str(e)} - 文件: {file}", exc_info=True)
         raise
 
-def get_llm_from_list(type: str, seq:int=0):
+def get_llm_from_list(type: str, seq:int=0,json_ouput=False):
     file= "setup.yaml"
     try:
         with open(file, encoding='utf-8') as f:
@@ -42,7 +45,10 @@ def get_llm_from_list(type: str, seq:int=0):
                     raise IndexError(f"seq参数{seq}无效，非列表配置只支持seq=0")
                 llm_name = type_value
             llm_params = data[llm_name]
-            llm = ChatOpenAI(**llm_params)
+            if json_ouput:
+                llm = ChatOpenAI(**llm_params, model_kwargs={"response_format": {"type": "json_object"}})
+            else:
+                llm = ChatOpenAI(**llm_params)
             return llm
     except yaml.YAMLError as ye:
         logger.error(f"YAML解析失败: {str(ye)} - 文件: {file}", exc_info=True)
@@ -56,9 +62,10 @@ def get_llm_from_list(type: str, seq:int=0):
 
 if __name__=="__main__":
     try:
-        llm=get_llm_from_list("gen_metadata_llm",3)
-        print(f"get_llm的返回类型：{type(llm)}")
-        print(f"get_llm的值：{llm}")
+        llm=get_llm_from_list("gen_metadata_llm",1)
+        print(f"llm的值：{llm}")
+
+        print(f"llm.model_name的值：{llm.model_name}")
+
     except Exception as e:
         print(e)
-

@@ -1,7 +1,7 @@
 # app_service.py 
 from fastapi import FastAPI, HTTPException, Request, Header
 from fastapi.responses import StreamingResponse
-from app_RAG_V2 import run_app
+from app_RAG_V3 import run_app
 import yaml 
 from typing import Optional
 import uuid

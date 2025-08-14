@@ -1,13 +1,11 @@
 from typing import Optional
 from langchain.prompts import PromptTemplate
-from langchain_core.runnables import RunnablePassthrough
 from Utils.llm import get_llm_from_list
 from Utils.load_setup import load_setup
 import asyncio
 from Utils.logger import setup_logger
-from Utils.retriver import creat_retriver,retrieve
+from Utils.retriever import retrieve
 from Utils.dicts_2_md import DocumentDisplayFormatter
-import json
 
 logger = setup_logger(__name__)
 

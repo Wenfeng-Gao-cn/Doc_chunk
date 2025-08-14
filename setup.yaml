@@ -43,6 +43,13 @@ embedding_model: # 嵌入模型配置
   max_retries: 3  # 最大重试次数
   request_timeout: 60  # 请求超时时间（秒）
 
+reranking_model: # 重排模型配置
+  model_name: "Pro/BAAI/bge-reranker-v2-m3"  # 支持OpenAI模型和第三方模型
+  openai_api_key: "sk-xucqkbqtmjyemzpumujgrtrfqmqxgapkgzmuqlrmhnyvgbhm"
+  openai_api_base: "https://api.siliconflow.cn"  
+  max_retries: 3  # 最大重试次数
+  request_timeout: 60  # 请求超时时间（秒）  
+
 Splitter_config: #文本分割器配置
   Recursive_config: #递归字符分割（按语义边界）
     chunk_size: 1000
@@ -70,6 +77,10 @@ Splitter_config: #文本分割器配置
 
 
 
+
+
+
+
 # 向量数据库配置
 vectordb_config:
   persist_directory: "./chroma_db"  # 向量数据库存储目录
@@ -83,10 +94,12 @@ retriever_config:
   # search_type: "similarity_score_threshold"
   search_type: "mmr"
   search_kwargs:
-    k: 15 
+    k: 50 
     score_threshold: 0.75
-    fetch_k: 50
+    fetch_k: 100
     lambda_mult: 0.3
+reranker_config:
+  top_k: 15
 
 # QA匹配配置
 graph_config:
